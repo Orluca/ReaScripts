@@ -35,7 +35,7 @@ local KEYBOARD_RANGE_INPUT_W = 40
 
 -- Padding inside the Settings window.
 local SETTINGS_WINDOW_PAD_X = 20
-local SETTINGS_WINDOW_PAD_Y = 25
+local SETTINGS_WINDOW_PAD_Y = 20
 
 local function get_color_picker_button_size(ctx)
   local frame_h = ImGui.GetFrameHeight(ctx)

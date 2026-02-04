@@ -1,11 +1,13 @@
 -- @description MIDI KeyMaps
--- @version 1.01
+-- @version 1.02
 -- @author Orlu
 -- @about
 --   Dockable on-screen MIDI keyboard allowing you to visualize which keys of the selected track/VST
 --   instrument have samples mapped to them. Support for instruments with multiple articulations, and 
 --   auto-switching those articulations via MIDI triggers.
 --   Requires ReaImGui to be installed.
+-- @links
+--   Forum Thread: *add later*
 -- @provides
 --   [nomain] data/articulations.lua
 --   [nomain] data/constants.lua
@@ -38,6 +40,9 @@
 --   [nomain] utils/math.lua
 --   [nomain] utils/path.lua
 --   [nomain] utils/serialize.lua
+-- @changelog
+--   Reaticulate Importer: Fixed bug where start note and end note changed just from activating the inputs
+--   Reaticulate Importer: When start note exceeds end note adjust end note accordingly, and vice versa
 
 
 local script_path = debug.getinfo(1, 'S').source:match([[^@?(.*[\\/])[^\\/]-$]])

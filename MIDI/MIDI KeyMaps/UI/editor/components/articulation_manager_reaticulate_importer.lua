@@ -249,7 +249,7 @@ local function draw_confirm_modal(ctx, center_x, center_y)
     ImGui.Spacing(ctx)
 
     ImGui.AlignTextToFramePadding(ctx)
-    ImGui.Text(ctx, "Zone Color")
+    ImGui.Text(ctx, "Color")
     ImGui.SameLine(ctx, LABEL_X)
     local changed, new_color = color_preset_picker.draw(ctx, "reaticulate_import_zone_color", state.zone_color, { w = 20, h = 20 })
     if changed then
@@ -257,7 +257,7 @@ local function draw_confirm_modal(ctx, center_x, center_y)
     end
 
     ImGui.AlignTextToFramePadding(ctx)
-    ImGui.Text(ctx, "Zone Label")
+    ImGui.Text(ctx, "Label (optional)")
     ImGui.SameLine(ctx, LABEL_X)
     ImGui.SetNextItemWidth(ctx, 200)
     local rv_label, new_label = ImGui.InputText(ctx, "##reaticulate_import_zone_label", state.zone_label, ImGui.InputTextFlags_AutoSelectAll)
@@ -272,6 +272,9 @@ local function draw_confirm_modal(ctx, center_x, center_y)
     local rv_sn, new_sn = input_note.draw(ctx, "##reaticulate_import_zone_start", state.zone_start, { middle_c_mode = settings.middle_c_mode })
     if rv_sn then
       state.zone_start = new_sn
+      if state.zone_start > state.zone_end then
+        state.zone_end = state.zone_start
+      end
     end
 
     ImGui.AlignTextToFramePadding(ctx)
@@ -281,6 +284,9 @@ local function draw_confirm_modal(ctx, center_x, center_y)
     local rv_en, new_en = input_note.draw(ctx, "##reaticulate_import_zone_end", state.zone_end, { middle_c_mode = settings.middle_c_mode })
     if rv_en then
       state.zone_end = new_en
+      if state.zone_end < state.zone_start then
+        state.zone_start = state.zone_end
+      end
     end
 
     ImGui.AlignTextToFramePadding(ctx)
