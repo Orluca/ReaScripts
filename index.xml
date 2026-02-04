@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="ReaPack Repository Template" commit="d1bef74499dabb395cc5bfdd69573fca3a117335">
+<index version="1" name="Orlu Scripts" commit="d1bef74499dabb395cc5bfdd69573fca3a117335">
   <category name="MIDI/MIDI KeyMaps">
     <reapack name="Orlu_MIDI KeyMaps.lua" type="script" desc="MIDI KeyMaps">
       <metadata>
