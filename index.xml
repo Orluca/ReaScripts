@@ -1,54 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="ReaPack Repository Template" commit="58a3e39ba95bd0f35846aa1f39aa4cb2574295e1">
-  <category name="Example">
-    <reapack name="cfillion_Hello world.lua" type="script" desc="Hello world">
+<index version="1" name="Orlu Scripts" commit="d1bef74499dabb395cc5bfdd69573fca3a117335">
+  <category name="MIDI/MIDI KeyMaps">
+    <reapack name="Orlu_MIDI KeyMaps.lua" type="script" desc="MIDI KeyMaps">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 This is an example of a package file. It installs itself as a ReaScript that does nothing but show "Hello World!" in REAPER's scripting console.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Packages may also include additional files specified using the @provides tag.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 This text is the documentation shown when using ReaPack's "About this package" feature. {\field{\*\fldinst{HYPERLINK "https://commonmark.org/"}}{\fldrslt{\ul
-Markdown
-}}}
- {\i formatting} is supported.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Dockable on-screen MIDI keyboard allowing you to visualize which keys of the selected track/VST instrument have samples mapped to them. Support for instruments with multiple articulations, and auto-switching those articulations via MIDI triggers. Requires ReaImGui to be installed.\par}
 }
 ]]></description>
       </metadata>
-      <version name="1.0" author="cfillion" time="2021-01-04T23:30:32Z">
-        <source main="main">https://github.com/cfillion/reapack-repository-template/raw/58a3e39ba95bd0f35846aa1f39aa4cb2574295e1/Example/cfillion_Hello%20world.lua</source>
+      <version name="1.0" author="Orlu" time="2026-02-04T14:54:28Z">
+        <source main="main">https://github.com/Orluca/ReaScripts/raw/d1bef74499dabb395cc5bfdd69573fca3a117335/MIDI/MIDI%20KeyMaps/Orlu_MIDI%20KeyMaps.lua</source>
+        <source file="data/articulations.lua">https://github.com/Orluca/ReaScripts/raw/d1bef74499dabb395cc5bfdd69573fca3a117335/MIDI/MIDI%20KeyMaps/data/articulations.lua</source>
+        <source file="data/constants.lua">https://github.com/Orluca/ReaScripts/raw/d1bef74499dabb395cc5bfdd69573fca3a117335/MIDI/MIDI%20KeyMaps/data/constants.lua</source>
+        <source file="data/presets.lua">https://github.com/Orluca/ReaScripts/raw/d1bef74499dabb395cc5bfdd69573fca3a117335/MIDI/MIDI%20KeyMaps/data/presets.lua</source>
+        <source file="data/reaticulate.lua">https://github.com/Orluca/ReaScripts/raw/d1bef74499dabb395cc5bfdd69573fca3a117335/MIDI/MIDI%20KeyMaps/data/reaticulate.lua</source>
+        <source file="midi/input.lua">https://github.com/Orluca/ReaScripts/raw/d1bef74499dabb395cc5bfdd69573fca3a117335/MIDI/MIDI%20KeyMaps/midi/input.lua</source>
+        <source file="midi/notes.lua">https://github.com/Orluca/ReaScripts/raw/d1bef74499dabb395cc5bfdd69573fca3a117335/MIDI/MIDI%20KeyMaps/midi/notes.lua</source>
+        <source file="README.md">https://github.com/Orluca/ReaScripts/raw/d1bef74499dabb395cc5bfdd69573fca3a117335/MIDI/MIDI%20KeyMaps/README.md</source>
+        <source file="UI/editor/components/articulation_editor.lua">https://github.com/Orluca/ReaScripts/raw/d1bef74499dabb395cc5bfdd69573fca3a117335/MIDI/MIDI%20KeyMaps/UI/editor/components/articulation_editor.lua</source>
+        <source file="UI/editor/components/articulation_editor_name.lua">https://github.com/Orluca/ReaScripts/raw/d1bef74499dabb395cc5bfdd69573fca3a117335/MIDI/MIDI%20KeyMaps/UI/editor/components/articulation_editor_name.lua</source>
+        <source file="UI/editor/components/articulation_editor_trigger.lua">https://github.com/Orluca/ReaScripts/raw/d1bef74499dabb395cc5bfdd69573fca3a117335/MIDI/MIDI%20KeyMaps/UI/editor/components/articulation_editor_trigger.lua</source>
+        <source file="UI/editor/components/articulation_editor_zones.lua">https://github.com/Orluca/ReaScripts/raw/d1bef74499dabb395cc5bfdd69573fca3a117335/MIDI/MIDI%20KeyMaps/UI/editor/components/articulation_editor_zones.lua</source>
+        <source file="UI/editor/components/articulation_manager.lua">https://github.com/Orluca/ReaScripts/raw/d1bef74499dabb395cc5bfdd69573fca3a117335/MIDI/MIDI%20KeyMaps/UI/editor/components/articulation_manager.lua</source>
+        <source file="UI/editor/components/articulation_manager_footer.lua">https://github.com/Orluca/ReaScripts/raw/d1bef74499dabb395cc5bfdd69573fca3a117335/MIDI/MIDI%20KeyMaps/UI/editor/components/articulation_manager_footer.lua</source>
+        <source file="UI/editor/components/articulation_manager_list.lua">https://github.com/Orluca/ReaScripts/raw/d1bef74499dabb395cc5bfdd69573fca3a117335/MIDI/MIDI%20KeyMaps/UI/editor/components/articulation_manager_list.lua</source>
+        <source file="UI/editor/components/articulation_manager_menu.lua">https://github.com/Orluca/ReaScripts/raw/d1bef74499dabb395cc5bfdd69573fca3a117335/MIDI/MIDI%20KeyMaps/UI/editor/components/articulation_manager_menu.lua</source>
+        <source file="UI/editor/components/articulation_manager_reaticulate_importer.lua">https://github.com/Orluca/ReaScripts/raw/d1bef74499dabb395cc5bfdd69573fca3a117335/MIDI/MIDI%20KeyMaps/UI/editor/components/articulation_manager_reaticulate_importer.lua</source>
+        <source file="UI/editor/editor.lua">https://github.com/Orluca/ReaScripts/raw/d1bef74499dabb395cc5bfdd69573fca3a117335/MIDI/MIDI%20KeyMaps/UI/editor/editor.lua</source>
+        <source file="UI/main/components/info_line.lua">https://github.com/Orluca/ReaScripts/raw/d1bef74499dabb395cc5bfdd69573fca3a117335/MIDI/MIDI%20KeyMaps/UI/main/components/info_line.lua</source>
+        <source file="UI/main/components/keyboard.lua">https://github.com/Orluca/ReaScripts/raw/d1bef74499dabb395cc5bfdd69573fca3a117335/MIDI/MIDI%20KeyMaps/UI/main/components/keyboard.lua</source>
+        <source file="UI/main/components/menu.lua">https://github.com/Orluca/ReaScripts/raw/d1bef74499dabb395cc5bfdd69573fca3a117335/MIDI/MIDI%20KeyMaps/UI/main/components/menu.lua</source>
+        <source file="UI/main/main.lua">https://github.com/Orluca/ReaScripts/raw/d1bef74499dabb395cc5bfdd69573fca3a117335/MIDI/MIDI%20KeyMaps/UI/main/main.lua</source>
+        <source file="UI/settings/settings.lua">https://github.com/Orluca/ReaScripts/raw/d1bef74499dabb395cc5bfdd69573fca3a117335/MIDI/MIDI%20KeyMaps/UI/settings/settings.lua</source>
+        <source file="UI/widgets/button.lua">https://github.com/Orluca/ReaScripts/raw/d1bef74499dabb395cc5bfdd69573fca3a117335/MIDI/MIDI%20KeyMaps/UI/widgets/button.lua</source>
+        <source file="UI/widgets/color_picker.lua">https://github.com/Orluca/ReaScripts/raw/d1bef74499dabb395cc5bfdd69573fca3a117335/MIDI/MIDI%20KeyMaps/UI/widgets/color_picker.lua</source>
+        <source file="UI/widgets/color_preset_picker.lua">https://github.com/Orluca/ReaScripts/raw/d1bef74499dabb395cc5bfdd69573fca3a117335/MIDI/MIDI%20KeyMaps/UI/widgets/color_preset_picker.lua</source>
+        <source file="UI/widgets/header.lua">https://github.com/Orluca/ReaScripts/raw/d1bef74499dabb395cc5bfdd69573fca3a117335/MIDI/MIDI%20KeyMaps/UI/widgets/header.lua</source>
+        <source file="UI/widgets/input_midi.lua">https://github.com/Orluca/ReaScripts/raw/d1bef74499dabb395cc5bfdd69573fca3a117335/MIDI/MIDI%20KeyMaps/UI/widgets/input_midi.lua</source>
+        <source file="UI/widgets/input_note.lua">https://github.com/Orluca/ReaScripts/raw/d1bef74499dabb395cc5bfdd69573fca3a117335/MIDI/MIDI%20KeyMaps/UI/widgets/input_note.lua</source>
+        <source file="utils/json.lua">https://github.com/Orluca/ReaScripts/raw/d1bef74499dabb395cc5bfdd69573fca3a117335/MIDI/MIDI%20KeyMaps/utils/json.lua</source>
+        <source file="utils/math.lua">https://github.com/Orluca/ReaScripts/raw/d1bef74499dabb395cc5bfdd69573fca3a117335/MIDI/MIDI%20KeyMaps/utils/math.lua</source>
+        <source file="utils/path.lua">https://github.com/Orluca/ReaScripts/raw/d1bef74499dabb395cc5bfdd69573fca3a117335/MIDI/MIDI%20KeyMaps/utils/path.lua</source>
+        <source file="utils/serialize.lua">https://github.com/Orluca/ReaScripts/raw/d1bef74499dabb395cc5bfdd69573fca3a117335/MIDI/MIDI%20KeyMaps/utils/serialize.lua</source>
       </version>
     </reapack>
   </category>
   <metadata>
-    <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+    <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs36 ReaPack Repository Template\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 A template for GitHub-hosted ReaPack repositories with automated {\field{\*\fldinst{HYPERLINK "https://github.com/cfillion/reapack-index"}}{\fldrslt{\ul
-reapack-index
-}}}
- running from GitHub Actions.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Replace the name of the repository in {\field{\*\fldinst{HYPERLINK "/index.xml"}}{\fldrslt{\ul
-index.xml
-}}}
- when using this template. This will be the name shown in ReaPack.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \f1 <index version="1" name="Name of your repository here">\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Replace the contents of this file ({\field{\*\fldinst{HYPERLINK "/README.md"}}{\fldrslt{\ul
-README.md
-}}}
-). This will be the text shown when using ReaPack's "About this repository" feature.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 reapack-index looks for package files in subfolders. The folder tree represents the package categories shown in ReaPack.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Each package file is expected to begin with a metadata header. See {\field{\*\fldinst{HYPERLINK "https://github.com/cfillion/reapack-index/wiki/Packaging-Documentation"}}{\fldrslt{\ul
-Packaging Documentation
-}}}
- on reapack-index's wiki.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 The URL to import in ReaPack is {\field{\*\fldinst{HYPERLINK "https://github.com/cfillion/reapack-repository-template/raw/master/index.xml"}}{\fldrslt{\ul
-https://github.com/{\f1 <your username>}/{\f1 <repository name>}/raw/master/index.xml
-}}}
-.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 ReaScripts by Orlu\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 ReaScripts for REAPER by Orlu.\par}
 }
 ]]></description>
   </metadata>
