@@ -13,7 +13,6 @@
 --   [nomain] data/reaticulate.lua
 --   [nomain] midi/input.lua
 --   [nomain] midi/notes.lua
---   [nomain] README.md
 --   [nomain] UI/editor/components/articulation_editor.lua
 --   [nomain] UI/editor/components/articulation_editor_name.lua
 --   [nomain] UI/editor/components/articulation_editor_trigger.lua
