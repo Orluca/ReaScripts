@@ -6,8 +6,6 @@
 --   instrument have samples mapped to them. Support for instruments with multiple articulations, and 
 --   auto-switching those articulations via MIDI triggers.
 --   Requires ReaImGui to be installed.
--- @links
---   Forum Thread: *add later*
 -- @provides
 --   [nomain] data/articulations.lua
 --   [nomain] data/constants.lua
