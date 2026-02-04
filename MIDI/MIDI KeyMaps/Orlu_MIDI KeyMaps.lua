@@ -1,5 +1,5 @@
 -- @description MIDI KeyMaps
--- @version 1.0
+-- @version 1.0.1
 -- @author Orlu
 -- @about
 --   Dockable on-screen MIDI keyboard allowing you to visualize which keys of the selected track/VST
