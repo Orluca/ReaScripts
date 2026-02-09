@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="Orlu Scripts" commit="7183383b1ca4f6011e18666d4a6306f85dbf99e5">
+<index version="1" name="Orlu Scripts" commit="048d2a3932803cde8798ac01a76e37bd7f3c2385">
   <category name="MIDI/MIDI KeyMaps">
     <reapack name="Orlu_MIDI KeyMaps.lua" type="script" desc="MIDI KeyMaps">
       <metadata>
@@ -44,6 +44,42 @@
         <source file="utils/math.lua">https://github.com/Orluca/ReaScripts/raw/7183383b1ca4f6011e18666d4a6306f85dbf99e5/MIDI/MIDI%20KeyMaps/utils/math.lua</source>
         <source file="utils/path.lua">https://github.com/Orluca/ReaScripts/raw/7183383b1ca4f6011e18666d4a6306f85dbf99e5/MIDI/MIDI%20KeyMaps/utils/path.lua</source>
         <source file="utils/serialize.lua">https://github.com/Orluca/ReaScripts/raw/7183383b1ca4f6011e18666d4a6306f85dbf99e5/MIDI/MIDI%20KeyMaps/utils/serialize.lua</source>
+      </version>
+      <version name="1.02" author="Orlu" time="2026-02-04T17:11:51Z">
+        <changelog><![CDATA[Reaticulate Importer: Fixed bug where start note and end note changed just from activating the inputs
+Reaticulate Importer: When start note exceeds end note adjust end note accordingly, and vice versa]]></changelog>
+        <source main="main">https://github.com/Orluca/ReaScripts/raw/048d2a3932803cde8798ac01a76e37bd7f3c2385/MIDI/MIDI%20KeyMaps/Orlu_MIDI%20KeyMaps.lua</source>
+        <source file="data/articulations.lua">https://github.com/Orluca/ReaScripts/raw/048d2a3932803cde8798ac01a76e37bd7f3c2385/MIDI/MIDI%20KeyMaps/data/articulations.lua</source>
+        <source file="data/constants.lua">https://github.com/Orluca/ReaScripts/raw/048d2a3932803cde8798ac01a76e37bd7f3c2385/MIDI/MIDI%20KeyMaps/data/constants.lua</source>
+        <source file="data/presets.lua">https://github.com/Orluca/ReaScripts/raw/048d2a3932803cde8798ac01a76e37bd7f3c2385/MIDI/MIDI%20KeyMaps/data/presets.lua</source>
+        <source file="data/reaticulate.lua">https://github.com/Orluca/ReaScripts/raw/048d2a3932803cde8798ac01a76e37bd7f3c2385/MIDI/MIDI%20KeyMaps/data/reaticulate.lua</source>
+        <source file="midi/input.lua">https://github.com/Orluca/ReaScripts/raw/048d2a3932803cde8798ac01a76e37bd7f3c2385/MIDI/MIDI%20KeyMaps/midi/input.lua</source>
+        <source file="midi/notes.lua">https://github.com/Orluca/ReaScripts/raw/048d2a3932803cde8798ac01a76e37bd7f3c2385/MIDI/MIDI%20KeyMaps/midi/notes.lua</source>
+        <source file="UI/editor/components/articulation_editor.lua">https://github.com/Orluca/ReaScripts/raw/048d2a3932803cde8798ac01a76e37bd7f3c2385/MIDI/MIDI%20KeyMaps/UI/editor/components/articulation_editor.lua</source>
+        <source file="UI/editor/components/articulation_editor_name.lua">https://github.com/Orluca/ReaScripts/raw/048d2a3932803cde8798ac01a76e37bd7f3c2385/MIDI/MIDI%20KeyMaps/UI/editor/components/articulation_editor_name.lua</source>
+        <source file="UI/editor/components/articulation_editor_trigger.lua">https://github.com/Orluca/ReaScripts/raw/048d2a3932803cde8798ac01a76e37bd7f3c2385/MIDI/MIDI%20KeyMaps/UI/editor/components/articulation_editor_trigger.lua</source>
+        <source file="UI/editor/components/articulation_editor_zones.lua">https://github.com/Orluca/ReaScripts/raw/048d2a3932803cde8798ac01a76e37bd7f3c2385/MIDI/MIDI%20KeyMaps/UI/editor/components/articulation_editor_zones.lua</source>
+        <source file="UI/editor/components/articulation_manager.lua">https://github.com/Orluca/ReaScripts/raw/048d2a3932803cde8798ac01a76e37bd7f3c2385/MIDI/MIDI%20KeyMaps/UI/editor/components/articulation_manager.lua</source>
+        <source file="UI/editor/components/articulation_manager_footer.lua">https://github.com/Orluca/ReaScripts/raw/048d2a3932803cde8798ac01a76e37bd7f3c2385/MIDI/MIDI%20KeyMaps/UI/editor/components/articulation_manager_footer.lua</source>
+        <source file="UI/editor/components/articulation_manager_list.lua">https://github.com/Orluca/ReaScripts/raw/048d2a3932803cde8798ac01a76e37bd7f3c2385/MIDI/MIDI%20KeyMaps/UI/editor/components/articulation_manager_list.lua</source>
+        <source file="UI/editor/components/articulation_manager_menu.lua">https://github.com/Orluca/ReaScripts/raw/048d2a3932803cde8798ac01a76e37bd7f3c2385/MIDI/MIDI%20KeyMaps/UI/editor/components/articulation_manager_menu.lua</source>
+        <source file="UI/editor/components/articulation_manager_reaticulate_importer.lua">https://github.com/Orluca/ReaScripts/raw/048d2a3932803cde8798ac01a76e37bd7f3c2385/MIDI/MIDI%20KeyMaps/UI/editor/components/articulation_manager_reaticulate_importer.lua</source>
+        <source file="UI/editor/editor.lua">https://github.com/Orluca/ReaScripts/raw/048d2a3932803cde8798ac01a76e37bd7f3c2385/MIDI/MIDI%20KeyMaps/UI/editor/editor.lua</source>
+        <source file="UI/main/components/info_line.lua">https://github.com/Orluca/ReaScripts/raw/048d2a3932803cde8798ac01a76e37bd7f3c2385/MIDI/MIDI%20KeyMaps/UI/main/components/info_line.lua</source>
+        <source file="UI/main/components/keyboard.lua">https://github.com/Orluca/ReaScripts/raw/048d2a3932803cde8798ac01a76e37bd7f3c2385/MIDI/MIDI%20KeyMaps/UI/main/components/keyboard.lua</source>
+        <source file="UI/main/components/menu.lua">https://github.com/Orluca/ReaScripts/raw/048d2a3932803cde8798ac01a76e37bd7f3c2385/MIDI/MIDI%20KeyMaps/UI/main/components/menu.lua</source>
+        <source file="UI/main/main.lua">https://github.com/Orluca/ReaScripts/raw/048d2a3932803cde8798ac01a76e37bd7f3c2385/MIDI/MIDI%20KeyMaps/UI/main/main.lua</source>
+        <source file="UI/settings/settings.lua">https://github.com/Orluca/ReaScripts/raw/048d2a3932803cde8798ac01a76e37bd7f3c2385/MIDI/MIDI%20KeyMaps/UI/settings/settings.lua</source>
+        <source file="UI/widgets/button.lua">https://github.com/Orluca/ReaScripts/raw/048d2a3932803cde8798ac01a76e37bd7f3c2385/MIDI/MIDI%20KeyMaps/UI/widgets/button.lua</source>
+        <source file="UI/widgets/color_picker.lua">https://github.com/Orluca/ReaScripts/raw/048d2a3932803cde8798ac01a76e37bd7f3c2385/MIDI/MIDI%20KeyMaps/UI/widgets/color_picker.lua</source>
+        <source file="UI/widgets/color_preset_picker.lua">https://github.com/Orluca/ReaScripts/raw/048d2a3932803cde8798ac01a76e37bd7f3c2385/MIDI/MIDI%20KeyMaps/UI/widgets/color_preset_picker.lua</source>
+        <source file="UI/widgets/header.lua">https://github.com/Orluca/ReaScripts/raw/048d2a3932803cde8798ac01a76e37bd7f3c2385/MIDI/MIDI%20KeyMaps/UI/widgets/header.lua</source>
+        <source file="UI/widgets/input_midi.lua">https://github.com/Orluca/ReaScripts/raw/048d2a3932803cde8798ac01a76e37bd7f3c2385/MIDI/MIDI%20KeyMaps/UI/widgets/input_midi.lua</source>
+        <source file="UI/widgets/input_note.lua">https://github.com/Orluca/ReaScripts/raw/048d2a3932803cde8798ac01a76e37bd7f3c2385/MIDI/MIDI%20KeyMaps/UI/widgets/input_note.lua</source>
+        <source file="utils/json.lua">https://github.com/Orluca/ReaScripts/raw/048d2a3932803cde8798ac01a76e37bd7f3c2385/MIDI/MIDI%20KeyMaps/utils/json.lua</source>
+        <source file="utils/math.lua">https://github.com/Orluca/ReaScripts/raw/048d2a3932803cde8798ac01a76e37bd7f3c2385/MIDI/MIDI%20KeyMaps/utils/math.lua</source>
+        <source file="utils/path.lua">https://github.com/Orluca/ReaScripts/raw/048d2a3932803cde8798ac01a76e37bd7f3c2385/MIDI/MIDI%20KeyMaps/utils/path.lua</source>
+        <source file="utils/serialize.lua">https://github.com/Orluca/ReaScripts/raw/048d2a3932803cde8798ac01a76e37bd7f3c2385/MIDI/MIDI%20KeyMaps/utils/serialize.lua</source>
       </version>
     </reapack>
   </category>
