@@ -22,6 +22,7 @@ local KEY_HIDE_KEY_LABELS = "hide_key_labels"
 local KEY_ZONE_COLOR_STRENGTH = "zone_color_strength"
 local KEY_DEFAULT_ZONE_COLOR = "default_zone_color"
 local KEY_TRIGGER_NOTE_COLOR = "trigger_note_color"
+local KEY_SEND_TRIGGER_ON_SWITCH = "send_trigger_on_switch"
 
 local MIDDLE_C_OPTIONS = {
   { value = 3, label = "C3" },
@@ -78,6 +79,7 @@ local settings = {
   hide_zone_tooltip = load_ext_state(KEY_HIDE_ZONE_TOOLTIP, false),
   hide_trigger_notes = load_ext_state(KEY_HIDE_TRIGGER_NOTES, false),
   hide_key_labels = load_ext_state(KEY_HIDE_KEY_LABELS, false),
+  send_trigger_on_switch = load_ext_state(KEY_SEND_TRIGGER_ON_SWITCH, true),
   keyboard_scale = load_ext_state(KEY_KEYBOARD_SCALE, 1.00),
   keyboard_low_note = load_ext_state(KEY_KEYBOARD_LOW_NOTE, 0),
   keyboard_high_note = load_ext_state(KEY_KEYBOARD_HIGH_NOTE, 127),
@@ -304,8 +306,6 @@ function settings.draw(ctx)
       save_ext_state(KEY_HIDE_INFO_LINE, new_val)
     end
 
-
-
     ImGui.Spacing(ctx)
     ImGui.SeparatorText(ctx, "KEYBOARD")
 
@@ -321,7 +321,7 @@ function settings.draw(ctx)
       save_ext_state(KEY_HIDE_ZONE_TOOLTIP, new_tt)
     end
 
-    local changed_trig, new_trig = ImGui.Checkbox(ctx, "Hide Trigger Notes", settings.hide_trigger_notes)
+    local changed_trig, new_trig = ImGui.Checkbox(ctx, "Hide Keyswitches", settings.hide_trigger_notes)
     if changed_trig then
       settings.hide_trigger_notes = new_trig
       save_ext_state(KEY_HIDE_TRIGGER_NOTES, new_trig)
@@ -332,6 +332,15 @@ function settings.draw(ctx)
     draw_middle_c_combo(ctx)
     draw_scale_slider(ctx)
     draw_keyboard_range(ctx)
+
+    ImGui.Spacing(ctx)
+    ImGui.SeparatorText(ctx, "MIDI")
+
+    local changed_send, new_send = ImGui.Checkbox(ctx, "Send Trigger on Articulation Switch", settings.send_trigger_on_switch)
+    if changed_send then
+      settings.send_trigger_on_switch = new_send
+      save_ext_state(KEY_SEND_TRIGGER_ON_SWITCH, new_send)
+    end
 
     ImGui.Spacing(ctx)
 

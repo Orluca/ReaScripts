@@ -20,6 +20,7 @@ local last_track_guid = nil
 ---@field val1 integer
 ---@field val2min integer
 ---@field val2max integer
+---@field keyswitch_note? integer
 
 ---@class ArticulationZone
 ---@field label string
@@ -50,9 +51,154 @@ local function select_first_if_any()
 end
 
 
+-- Optional: send the active articulation's trigger when switching via UI.
+-- We still guard this by the Settings checkbox + an explicit flag on set_active().
+local MIDI_MODE = 0
+local MIDI_CHANNEL = 0
+local STATUS_NOTE_ON = 0x90 + MIDI_CHANNEL
+local STATUS_NOTE_OFF = 0x80 + MIDI_CHANNEL
+local STATUS_CC = 0xB0 + MIDI_CHANNEL
+local STATUS_PC = 0xC0 + MIDI_CHANNEL
+
+-- When we switch articulations via UI we may optionally send the articulation's trigger.
+-- That MIDI can show up again in MIDI_GetRecentInputEvent, so we ignore the next
+-- matching event briefly to avoid immediately re-selecting the first articulation
+-- that shares the same trigger.
+local IGNORE_SELF_TRIGGER_SEC = 0.25
+
+---@class IgnoredMidiTrigger
+---@field msg_type integer
+---@field val1 integer
+---@field val2 integer
+---@field channel integer
+---@field expires_at number
+
+---@type IgnoredMidiTrigger|nil
+local ignored_trigger = nil
+
+local function now_time()
+  if type(reaper.time_precise) == "function" then
+    return reaper.time_precise()
+  end
+  return os.clock()
+end
+
+local function ignore_next_trigger_event(msg_type, val1, val2, channel)
+  ignored_trigger = {
+    msg_type = msg_type,
+    val1 = val1,
+    val2 = val2,
+    channel = channel,
+    expires_at = now_time() + IGNORE_SELF_TRIGGER_SEC
+  }
+end
+
+local function should_ignore_trigger_event(ev)
+  if not ignored_trigger then
+    return false
+  end
+
+  if now_time() > ignored_trigger.expires_at then
+    ignored_trigger = nil
+    return false
+  end
+
+  if type(ev) ~= "table" then
+    return false
+  end
+
+  if ev.msg_type ~= ignored_trigger.msg_type then return false end
+  if ev.val1 ~= ignored_trigger.val1 then return false end
+  if ev.val2 ~= ignored_trigger.val2 then return false end
+  if ev.channel ~= ignored_trigger.channel then return false end
+
+  -- Consume it so we don't ignore unrelated future input.
+  ignored_trigger = nil
+  return true
+end
+
+local function get_target_track()
+  if reaper.CountSelectedTracks(0) == 0 then
+    return nil
+  end
+
+  local tr
+  if type(reaper.GetSelectedTrack2) == "function" then
+    tr = reaper.GetSelectedTrack2(0, 0, true)
+  else
+    tr = reaper.GetSelectedTrack(0, 0)
+  end
+
+  if not tr then
+    return nil
+  end
+
+  local master = reaper.GetMasterTrack(0)
+  if master and tr == master then
+    return nil
+  end
+
+  return tr
+end
+
+local function send_trigger_for_articulation(art)
+  if type(art) ~= "table" then
+    return
+  end
+
+  local trig = art.trigger
+  if type(trig) ~= "table" then
+    return
+  end
+
+  local t = tonumber(trig.type) or -1
+
+  if t == midi_input.MSG_TYPE.note_on then
+    local note = math.floor(tonumber(trig.val1) or -1)
+    if note < 0 or note > 127 then
+      return
+    end
+
+    local vel = math.floor(tonumber(trig.val2min) or 1)
+    vel = math.max(1, math.min(127, vel))
+
+    ignore_next_trigger_event(midi_input.MSG_TYPE.note_on, note, vel, MIDI_CHANNEL + 1)
+    reaper.StuffMIDIMessage(MIDI_MODE, STATUS_NOTE_ON, note, vel)
+    reaper.defer(function()
+      reaper.StuffMIDIMessage(MIDI_MODE, STATUS_NOTE_OFF, note, 0)
+    end)
+    return
+  end
+
+  if t == midi_input.MSG_TYPE.cc then
+    local cc = math.floor(tonumber(trig.val1) or -1)
+    if cc < 0 or cc > 127 then
+      return
+    end
+
+    local val = math.floor(tonumber(trig.val2min) or 0)
+    val = math.max(0, math.min(127, val))
+
+    ignore_next_trigger_event(midi_input.MSG_TYPE.cc, cc, val, MIDI_CHANNEL + 1)
+    reaper.StuffMIDIMessage(MIDI_MODE, STATUS_CC, cc, val)
+    return
+  end
+
+  if t == midi_input.MSG_TYPE.pc then
+    local pc = math.floor(tonumber(trig.val1) or -1)
+    if pc < 0 or pc > 127 then
+      return
+    end
+
+    ignore_next_trigger_event(midi_input.MSG_TYPE.pc, pc, 0, MIDI_CHANNEL + 1)
+    reaper.StuffMIDIMessage(MIDI_MODE, STATUS_PC, pc, 0)
+  end
+end
+
 ---Set the active articulation index (1-based). Saves immediately when changed.
 ---@param index integer 1-based (0 clears selection)
-function articulations.set_active(index)
+---@param send_trigger boolean|nil When true, sends the articulation's trigger (if enabled in Settings).
+function articulations.set_active(index, send_trigger)
   local items = articulations.items or {}
   local n = (type(items) == "table") and #items or 0
 
@@ -70,6 +216,12 @@ function articulations.set_active(index)
 
   articulations.active_index = i
   articulations.save()
+
+  if send_trigger and settings.send_trigger_on_switch and i > 0 then
+    if get_target_track() then
+      send_trigger_for_articulation(items[i])
+    end
+  end
 end
 
 ---@return Articulation|nil
@@ -230,6 +382,58 @@ function articulations.rename(index, name)
 end
 
 
+
+
+---Set/clear the optional keyswitch note alias (saves immediately).
+---@param index integer 1-based index
+---@param note integer|nil MIDI note 0-127 (nil disables)
+function articulations.set_keyswitch_note(index, note)
+  local items = articulations.items
+  if type(items) ~= "table" or type(index) ~= "number" then
+    return
+  end
+
+  local art = items[index]
+  if type(art) ~= "table" then
+    return
+  end
+
+  local trig = (type(art.trigger) == "table") and art.trigger or nil
+  if type(trig) ~= "table" then
+    return
+  end
+
+  local t = tonumber(trig.type) or -1
+  if t ~= midi_input.MSG_TYPE.note_on and t ~= midi_input.MSG_TYPE.cc and t ~= midi_input.MSG_TYPE.pc then
+    return
+  end
+
+  if note == nil then
+    if trig.keyswitch_note == nil then
+      return
+    end
+    trig.keyswitch_note = nil
+    articulations.save()
+    return
+  end
+
+  local n = tonumber(note)
+  if type(n) ~= "number" then
+    return
+  end
+
+  n = math.floor(n)
+  if n < 0 then n = 0 end
+  if n > 127 then n = 127 end
+
+  if trig.keyswitch_note == n then
+    return
+  end
+
+  trig.keyswitch_note = n
+  articulations.save()
+end
+
 --- Set/replace the trigger for an articulation (saves immediately).
 ---@param index integer 1-based index
 ---@param trigger ArticulationTrigger|MidiMsgType|nil
@@ -244,24 +448,43 @@ function articulations.set_trigger(index, trigger)
     return
   end
 
+  local cur = (type(art.trigger) == "table") and art.trigger or nil
+  local cur_keyswitch = (type(cur) == "table") and cur.keyswitch_note or nil
+
   local function default_trigger_for_type(t)
     if t == midi_input.MSG_TYPE.note_on then
-      return {type = t, val1 = 60, val2min = 1, val2max = 127}
+      return {type = t, val1 = 60, val2min = 1, val2max = 127, keyswitch_note = cur_keyswitch}
     end
     if t == midi_input.MSG_TYPE.cc then
-      return {type = t, val1 = 1, val2min = 0, val2max = 127}
+      return {type = t, val1 = 1, val2min = 0, val2max = 127, keyswitch_note = cur_keyswitch}
     end
     if t == midi_input.MSG_TYPE.pc then
-      return {type = t, val1 = 1, val2min = -1, val2max = -1}
+      return {type = t, val1 = 1, val2min = -1, val2max = -1, keyswitch_note = cur_keyswitch}
     end
     return {type = -1, val1 = -1, val2min = -1, val2max = -1}
   end
 
+  local function supports_keyswitch_note(t)
+    return t == midi_input.MSG_TYPE.note_on or t == midi_input.MSG_TYPE.cc or t == midi_input.MSG_TYPE.pc
+  end
+
   if type(trigger) == "table" then
-    art.trigger = trigger
+    local new_trig = trigger
+    local t = tonumber(new_trig.type) or -1
+
+    if supports_keyswitch_note(t) then
+      -- Preserve keyswitch note by default for triggers that support it.
+      if new_trig.keyswitch_note == nil and cur_keyswitch ~= nil then
+        new_trig.keyswitch_note = cur_keyswitch
+      end
+    else
+      -- Off: clear any keyswitch field.
+      new_trig.keyswitch_note = nil
+    end
+
+    art.trigger = new_trig
   elseif type(trigger) == "number" then
     local t = math.floor(trigger)
-    local cur = (type(art.trigger) == "table") and art.trigger or nil
     if cur and cur.type == t then
       return
     end
@@ -657,6 +880,37 @@ local function event_matches_trigger(ev, trig)
   return false
 end
 
+local function event_matches_keyswitch(ev, trig)
+  if type(ev) ~= "table" or type(trig) ~= "table" then
+    return false
+  end
+
+  local t = trig.type
+  if t ~= midi_input.MSG_TYPE.note_on and t ~= midi_input.MSG_TYPE.cc and t ~= midi_input.MSG_TYPE.pc then
+    return false
+  end
+
+  local ks = tonumber(trig.keyswitch_note)
+  if type(ks) ~= "number" then
+    return false
+  end
+  ks = math.floor(ks)
+  if ks < 0 or ks > 127 then
+    return false
+  end
+
+  if ev.msg_type ~= midi_input.MSG_TYPE.note_on then
+    return false
+  end
+
+  local vel = tonumber(ev.val2) or 0
+  if vel <= 0 then
+    return false
+  end
+
+  return ev.val1 == ks
+end
+
 ---Applies incoming MIDI events to switch the active articulation.
 ---
 ---This is evaluated every frame after midi_input.update(), using only the
@@ -677,15 +931,22 @@ function articulations.apply_midi_triggers()
   end
 
   local new_active = nil
+  local via_keyswitch = false
 
   -- Process from oldest -> newest so the newest matching event wins.
   for i = #events, 1, -1 do
     local ev = events[i]
-    if type(ev) == "table" then
+    if type(ev) == "table" and not should_ignore_trigger_event(ev) then
       for idx, art in ipairs(items) do
         local trig = (type(art) == "table") and art.trigger or nil
         if event_matches_trigger(ev, trig) then
           new_active = idx
+          via_keyswitch = false
+          break
+        end
+        if event_matches_keyswitch(ev, trig) then
+          new_active = idx
+          via_keyswitch = true
           break
         end
       end
@@ -693,7 +954,7 @@ function articulations.apply_midi_triggers()
   end
 
   if type(new_active) == "number" and new_active ~= articulations.active_index then
-    articulations.set_active(new_active)
+    articulations.set_active(new_active, via_keyswitch)
   end
 end
 

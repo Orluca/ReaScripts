@@ -22,9 +22,57 @@ local INPUT_W = 50
 local RADIO_GAP = 20
 
 -- Fixed height for the Trigger section.
-local TRIGGER_EDITOR_H = 131
+local TRIGGER_EDITOR_H = 152
 
 local TEXT_FLAGS = ImGui.InputTextFlags_AutoSelectAll
+
+local KEYSWITCH_TRIGGER_WARN_COLOR = 0xFF4B4BFF
+
+local function find_trigger_note_conflicts(note, self_index)
+  note = tonumber(note)
+  note = note and math.floor(note)
+  if type(note) ~= "number" or note < 0 or note > 127 then
+    return {}
+  end
+
+  local items = articulations.items or {}
+  local conflicts = {}
+  local seen = {}
+
+  for idx, art in ipairs(items) do
+    if idx ~= self_index and type(art) == "table" then
+      local trig = (type(art.trigger) == "table") and art.trigger or nil
+      if trig then
+        local t = trig.type
+        local hit = false
+
+        if t == midi_input.MSG_TYPE.note_on then
+          local v1 = tonumber(trig.val1)
+          v1 = v1 and math.floor(v1)
+          if v1 == note then
+            hit = true
+          end
+        end
+
+        local ks = tonumber(trig.keyswitch_note)
+        ks = ks and math.floor(ks)
+        if ks == note and (t == midi_input.MSG_TYPE.note_on or t == midi_input.MSG_TYPE.cc or t == midi_input.MSG_TYPE.pc) then
+          hit = true
+        end
+
+        if hit then
+          local name = (type(art.name) == "string" and art.name ~= "") and art.name or ("Articulation " .. tostring(idx))
+          if not seen[name] then
+            seen[name] = true
+            conflicts[#conflicts + 1] = name
+          end
+        end
+      end
+    end
+  end
+
+  return conflicts
+end
 
 local function is_off_type(t)
   return t ~= midi_input.MSG_TYPE.note_on and t ~= midi_input.MSG_TYPE.cc and t ~= midi_input.MSG_TYPE.pc
@@ -125,6 +173,78 @@ local function draw_range_inputs(ctx, id_min, id_max, min_val, max_val, clamp_mi
   return false, min_val, max_val
 end
 
+local function draw_keyswitch_row(ctx, index, art, trigger, id_prefix)
+  begin_row(ctx, "KS Alias:")
+
+  local ks = (trigger and tonumber(trigger.keyswitch_note)) or nil
+  if type(ks) ~= "number" then
+    ks = nil
+  end
+
+  local enabled = (ks ~= nil)
+  local changed, new_enabled = ImGui.Checkbox(ctx, id_prefix .. "_enable", enabled)
+  if changed then
+    if new_enabled then
+      articulations.set_keyswitch_note(index, 60)
+      ks = 60
+      enabled = true
+    else
+      articulations.set_keyswitch_note(index, nil)
+      ks = nil
+      enabled = false
+    end
+    trigger = refresh_trigger(art)
+  end
+
+  ImGui.SameLine(ctx)
+
+  if enabled then
+    ImGui.SetNextItemWidth(ctx, INPUT_W)
+
+    local note_changed, new_note = input_note.draw(ctx, id_prefix .. "_note", math.floor(ks or 60), {
+      middle_c_mode = settings.middle_c_mode,
+      midi_learn = true,
+      flags = TEXT_FLAGS
+    })
+
+    if note_changed then
+      articulations.set_keyswitch_note(index, new_note)
+      trigger = refresh_trigger(art)
+    end
+
+    -- For Note triggers: warn if the chosen keyswitch note is already used by another trigger.
+    local trig_type = (trigger and trigger.type) or -1
+    if trig_type == midi_input.MSG_TYPE.note_on then
+      local check_note = note_changed and new_note or (ks and math.floor(ks))
+      local conflicts = find_trigger_note_conflicts(check_note, index)
+      if #conflicts > 0 then
+        ImGui.SameLine(ctx)
+        ImGui.PushStyleColor(ctx, ImGui.Col_Text, KEYSWITCH_TRIGGER_WARN_COLOR)
+        ImGui.AlignTextToFramePadding(ctx)
+        ImGui.Text(ctx, "Already used by a trigger")
+        ImGui.PopStyleColor(ctx)
+
+        if ImGui.IsItemHovered(ctx) then
+          if ImGui.BeginTooltip(ctx) then
+            for _, n in ipairs(conflicts) do
+              ImGui.Text(ctx, n)
+            end
+            ImGui.EndTooltip(ctx)
+          end
+        end
+      end
+    end
+  else
+    local disabled = ImGui.GetStyleColor(ctx, ImGui.Col_TextDisabled)
+    ImGui.PushStyleColor(ctx, ImGui.Col_Text, disabled)
+    ImGui.AlignTextToFramePadding(ctx)
+    ImGui.Text(ctx, "Off")
+    ImGui.PopStyleColor(ctx)
+  end
+
+  return trigger
+end
+
 local function draw_note_section(ctx, index, art, trigger)
   begin_row(ctx, "Note:")
   ImGui.SetNextItemWidth(ctx, INPUT_W)
@@ -175,6 +295,8 @@ local function draw_note_section(ctx, index, art, trigger)
 
     trigger = refresh_trigger(art)
   end
+
+  trigger = draw_keyswitch_row(ctx, index, art, trigger, "##note_keyswitch")
 
   return trigger
 end
@@ -230,6 +352,8 @@ local function draw_cc_section(ctx, index, art, trigger)
     trigger = refresh_trigger(art)
   end
 
+  trigger = draw_keyswitch_row(ctx, index, art, trigger, "##cc_keyswitch")
+
   return trigger
 end
 
@@ -253,6 +377,8 @@ local function draw_pc_section(ctx, index, art, trigger)
 
     trigger = refresh_trigger(art)
   end
+
+  trigger = draw_keyswitch_row(ctx, index, art, trigger, "##pc_keyswitch")
 
   return trigger
 end

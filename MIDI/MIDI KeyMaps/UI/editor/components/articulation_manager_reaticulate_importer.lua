@@ -38,7 +38,11 @@ local state = {
   zone_label = "",
   zone_start = 60,
   zone_end = 60,
-  zone_mode = constants.zone_mode.chromatic
+  zone_mode = constants.zone_mode.chromatic,
+
+  assign_keyswitches = false,
+  keyswitch_start = 60,
+  keyswitch_pattern = constants.zone_mode.chromatic
 }
 
 local ZONE_MODE_OPTIONS = {
@@ -151,11 +155,136 @@ reset_confirm_state = function()
   state.zone_start = 60
   state.zone_end = 60
   state.zone_mode = constants.zone_mode.chromatic
+  state.assign_keyswitches = false
+  state.keyswitch_start = 60
+  state.keyswitch_pattern = constants.zone_mode.chromatic
 end
 
-local function build_import_items(preset, default_zone)
+local function clamp_note(n)
+  if n < 0 then
+    return 0
+  end
+  if n > 127 then
+    return 127
+  end
+  return n
+end
+
+local function normalize_range(a, b)
+  if type(a) ~= "number" or type(b) ~= "number" then
+    return nil, nil
+  end
+
+  a = math.floor(a)
+  b = math.floor(b)
+
+  if a > b then
+    a, b = b, a
+  end
+
+  return a, b
+end
+
+local function is_black(note)
+  local o = note % 12
+  return o == 1 or o == 3 or o == 6 or o == 8 or o == 10
+end
+
+local function round_up_to_white(note)
+  while note <= 127 and is_black(note) do
+    note = note + 1
+  end
+  return note
+end
+
+local function adjust_note(note, pattern, zone_lo, zone_hi)
+  local skipped_zone = false
+
+  if pattern == constants.zone_mode.white then
+    note = round_up_to_white(note)
+  end
+
+  if type(zone_lo) == "number" and type(zone_hi) == "number" then
+    if note >= zone_lo and note <= zone_hi then
+      note = zone_hi + 1
+      skipped_zone = true
+
+      if pattern == constants.zone_mode.white then
+        note = round_up_to_white(note)
+      end
+    end
+  end
+
+  return note, skipped_zone
+end
+
+local function advance_note(note, pattern)
+  note = note + 1
+  if pattern == constants.zone_mode.white then
+    while note <= 127 and is_black(note) do
+      note = note + 1
+    end
+  end
+  return note
+end
+
+local function keyswitch_zone_warning(start_note, pattern, zone_lo, zone_hi, count)
+  if type(zone_lo) ~= "number" or type(zone_hi) ~= "number" then
+    return nil
+  end
+
+  if type(count) ~= "number" or count <= 0 then
+    return nil
+  end
+
+  local note = clamp_note(math.floor(tonumber(start_note) or 0))
+  local skipped_zone
+  note, skipped_zone = adjust_note(note, pattern, zone_lo, zone_hi)
+  if skipped_zone then
+    return "Starts after default zone"
+  end
+
+  for _ = 2, count do
+    if note > 127 then
+      break
+    end
+
+    note = advance_note(note, pattern)
+    note, skipped_zone = adjust_note(note, pattern, zone_lo, zone_hi)
+
+    if skipped_zone then
+      return "Cuts into default zone"
+    end
+  end
+
+  return nil
+end
+
+local function build_import_items(preset, default_zone, keyswitch_opts)
   local out = {}
   local arts = (type(preset) == "table" and type(preset.articulations) == "table") and preset.articulations or {}
+
+  local zone_lo, zone_hi = nil, nil
+  if type(default_zone) == "table" then
+    zone_lo, zone_hi = normalize_range(tonumber(default_zone.start_note), tonumber(default_zone.end_note))
+  end
+
+  local ks_note = nil
+  local ks_pattern = constants.zone_mode.chromatic
+
+  if type(keyswitch_opts) == "table" then
+    ks_pattern = tonumber(keyswitch_opts.pattern) or ks_pattern
+
+    local start = tonumber(keyswitch_opts.start_note)
+    if type(start) == "number" then
+      ks_note = clamp_note(math.floor(start))
+      ks_note, _ = adjust_note(ks_note, ks_pattern, zone_lo, zone_hi)
+
+      if ks_note > 127 then
+        ks_note = nil
+      end
+    end
+  end
 
   for _, a in ipairs(arts) do
     local pc = tonumber(a.pc)
@@ -178,15 +307,30 @@ local function build_import_items(preset, default_zone)
 
     local zones = {zone}
 
+    local trig = { type = midi_input.MSG_TYPE.pc, val1 = pc or 0, val2min = -1, val2max = -1 }
+    if type(ks_note) == "number" and ks_note <= 127 then
+      trig.keyswitch_note = ks_note
+
+      local next_note = advance_note(ks_note, ks_pattern)
+      next_note, _ = adjust_note(next_note, ks_pattern, zone_lo, zone_hi)
+
+      if next_note > 127 then
+        ks_note = nil
+      else
+        ks_note = next_note
+      end
+    end
+
     out[#out + 1] = {
       name = name,
-      trigger = { type = midi_input.MSG_TYPE.pc, val1 = pc or 0, val2min = -1, val2max = -1 },
+      trigger = trig,
       zones = zones
     }
   end
 
   return out
 end
+
 
 local CONFIRM_POPUP_ID = "Confirm Reaticulate Import"
 
@@ -243,9 +387,9 @@ local function draw_confirm_modal(ctx, center_x, center_y)
     end
   end
 
-  if state.set_default_zone then
-    local LABEL_X = 120
+  local LABEL_X = 120
 
+  if state.set_default_zone then
     ImGui.Spacing(ctx)
 
     ImGui.AlignTextToFramePadding(ctx)
@@ -315,6 +459,69 @@ local function draw_confirm_modal(ctx, center_x, center_y)
       ImGui.EndCombo(ctx)
     end
   end
+
+  ImGui.Spacing(ctx)
+
+  local was_keyswitch = state.assign_keyswitches
+  local rv_ks, new_ks = ImGui.Checkbox(ctx, "Assign KS aliases to imported articulations", state.assign_keyswitches)
+  if rv_ks then
+    state.assign_keyswitches = new_ks
+    if new_ks and not was_keyswitch then
+      state.keyswitch_start = 60
+      state.keyswitch_pattern = constants.zone_mode.chromatic
+    end
+  end
+
+  if state.assign_keyswitches then
+    ImGui.Spacing(ctx)
+
+    ImGui.AlignTextToFramePadding(ctx)
+    ImGui.Text(ctx, "Start Note")
+    ImGui.SameLine(ctx, LABEL_X)
+    local KEYSWITCH_START_W = 30
+    ImGui.SetNextItemWidth(ctx, KEYSWITCH_START_W)
+    local rv_ksn, new_ksn = input_note.draw(ctx, "##reaticulate_import_keyswitch_start", state.keyswitch_start, { middle_c_mode = settings.middle_c_mode })
+    if rv_ksn then
+      state.keyswitch_start = new_ksn
+    end
+
+    if state.set_default_zone and count > 0 then
+      local zone_lo, zone_hi = normalize_range(state.zone_start, state.zone_end)
+      local warn = keyswitch_zone_warning(state.keyswitch_start, state.keyswitch_pattern, zone_lo, zone_hi, count)
+      if warn then
+        ImGui.SameLine(ctx)
+        ImGui.PushStyleColor(ctx, ImGui.Col_Text, 0xFF4B4BFF)
+        ImGui.Text(ctx, warn)
+        ImGui.PopStyleColor(ctx)
+      end
+    end
+
+    ImGui.AlignTextToFramePadding(ctx)
+    ImGui.Text(ctx, "Pattern")
+    ImGui.SameLine(ctx, LABEL_X)
+
+    local ks_preview = (state.keyswitch_pattern == constants.zone_mode.white) and "White Keys" or "Chromatic"
+    if ImGui.BeginCombo(ctx, "##reaticulate_import_keyswitch_pattern", ks_preview) then
+      local sel_chromatic = (state.keyswitch_pattern == constants.zone_mode.chromatic)
+      if ImGui.Selectable(ctx, "Chromatic", sel_chromatic) then
+        state.keyswitch_pattern = constants.zone_mode.chromatic
+      end
+      if sel_chromatic then
+        ImGui.SetItemDefaultFocus(ctx)
+      end
+
+      local sel_white = (state.keyswitch_pattern == constants.zone_mode.white)
+      if ImGui.Selectable(ctx, "White Keys", sel_white) then
+        state.keyswitch_pattern = constants.zone_mode.white
+      end
+      if sel_white then
+        ImGui.SetItemDefaultFocus(ctx)
+      end
+
+      ImGui.EndCombo(ctx)
+    end
+  end
+
   ImGui.Spacing(ctx)
   ImGui.Spacing(ctx)
 
@@ -334,7 +541,12 @@ local function draw_confirm_modal(ctx, center_x, center_y)
       }
     end
 
-    local items = build_import_items(preset, default_zone)
+    local keyswitch_opts = nil
+    if state.assign_keyswitches then
+      keyswitch_opts = { start_note = state.keyswitch_start, pattern = state.keyswitch_pattern }
+    end
+
+    local items = build_import_items(preset, default_zone, keyswitch_opts)
 
     if state.import_mode == IMPORT_MODE.replace then
       articulations.replace_all(items)

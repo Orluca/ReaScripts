@@ -62,6 +62,11 @@ local zone_hover = {
   grace_frames = 0
 }
 
+-- Zone played label (used for info line).
+local zone_play = {
+  label = nil
+}
+
 -- Trigger note hover label (used for tooltip + info line).
 local TRIGGER_TOOLTIP_GRACE_FRAMES = 2
 local trigger_hover = {
@@ -313,24 +318,39 @@ local function build_trigger_maps(items, color)
   local colors = {}
   local names = {}
 
+  local function add_note(note, name)
+    note = tonumber(note)
+    note = note and math.floor(note)
+    if not note or note < 0 or note > 127 then
+      return
+    end
+
+    colors[note] = color
+
+    local existing = names[note]
+    if type(existing) == "string" and existing ~= "" then
+      if existing ~= name then
+        names[note] = existing .. ", " .. name
+      end
+    else
+      names[note] = name
+    end
+  end
+
   for _, art in ipairs(items) do
     if type(art) == "table" then
       local trig = (type(art.trigger) == "table") and art.trigger or nil
-      if trig and trig.type == midi_input.MSG_TYPE.note_on then
-        local note = tonumber(trig.val1)
-        note = note and math.floor(note)
-        if note and note >= 0 and note <= 127 then
-          colors[note] = color
+      if trig then
+        local name = (type(art.name) == "string" and art.name ~= "") and art.name or "<unnamed>"
 
-          local name = (type(art.name) == "string" and art.name ~= "") and art.name or "<unnamed>"
-          local existing = names[note]
-          if type(existing) == "string" and existing ~= "" then
-            if existing ~= name then
-              names[note] = existing .. ", " .. name
-            end
+        if trig.type == midi_input.MSG_TYPE.note_on then
+          if trig.keyswitch_note ~= nil then
+            add_note(trig.keyswitch_note, name)
           else
-            names[note] = name
+            add_note(trig.val1, name)
           end
+        elseif trig.type == midi_input.MSG_TYPE.cc or trig.type == midi_input.MSG_TYPE.pc then
+          add_note(trig.keyswitch_note, name)
         end
       end
     end
@@ -362,6 +382,27 @@ local function update_zone_hover(state, zone_labels)
       zone_hover.grace_frames = 0
     end
   end
+end
+
+local function update_played_zone_label(state, zone_labels)
+  local midi_active = state and state.midi_active or nil
+  if type(midi_active) ~= "table" then
+    zone_play.label = nil
+    return
+  end
+
+  local label = nil
+  for note = 0, 127 do
+    if midi_active[note] ~= nil then
+      local l = zone_labels and zone_labels[note] or nil
+      if type(l) == "string" and l ~= "" then
+        label = l
+        break
+      end
+    end
+  end
+
+  zone_play.label = label
 end
 
 
@@ -398,7 +439,7 @@ local function draw_keyboard_tooltip(ctx)
       ImGui.Text(ctx, zone_hover.label)
     end
     if trigger_hover.name ~= nil then
-      ImGui.Text(ctx, "Articulation: " .. trigger_hover.name)
+      ImGui.Text(ctx, "KS: " .. trigger_hover.name)
     end
     ImGui.EndTooltip(ctx)
   end
@@ -619,6 +660,10 @@ function keyboard.get_hovered_zone_label()
   return zone_hover.label
 end
 
+function keyboard.get_played_zone_label()
+  return zone_play.label
+end
+
 function keyboard.get_hovered_trigger_articulation_name()
   return trigger_hover.name
 end
@@ -664,6 +709,7 @@ function keyboard.draw(ctx, sizes, opts)
   local zone_strength = strength_pct / 100
 
   update_zone_hover(state, zone_labels)
+  update_played_zone_label(state, zone_labels)
   update_trigger_hover(state, trigger_names)
   update_mouse_midi(state)
   draw_keys(dl, keys, constants.keyboard, state, zone_colors, zone_strength, trigger_colors, zone_strength, white_notes, black_notes)

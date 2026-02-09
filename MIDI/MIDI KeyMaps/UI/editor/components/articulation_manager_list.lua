@@ -10,6 +10,9 @@ local settings = require("UI.settings.settings")
 local ARTICULATION_LIST_PAD_X = 4
 local DND_ARTIC_MOVE_PAYLOAD = "DND_ARTIC_MOVE"
 
+-- Trigger label view mode in the list: show canonical triggers or keyswitch notes.
+local show_keyswitches = false
+
 local rename_state = {
   index = 0,
   buf = "",
@@ -88,6 +91,32 @@ local function format_trigger(trigger)
   return ""
 end
 
+local function format_keyswitch(trigger)
+  if type(trigger) ~= "table" then
+    return ""
+  end
+
+  local t = trigger.type
+
+  local note = nil
+  if t == midi_input.MSG_TYPE.note_on then
+    -- Only show a note here if a custom keyswitch note is assigned.
+    note = trigger.keyswitch_note
+  elseif t == midi_input.MSG_TYPE.cc or t == midi_input.MSG_TYPE.pc then
+    note = trigger.keyswitch_note
+  else
+    return ""
+  end
+
+  note = tonumber(note)
+  note = note and math.floor(note)
+  if type(note) ~= "number" then
+    return ""
+  end
+
+  return midi_notes.note_to_name(note, settings.middle_c_mode)
+end
+
 local function delete_active_articulation()
   if not has_active() then
     return
@@ -119,7 +148,7 @@ end
 local function draw_articulation_context_menu(ctx, row_i)
   if ImGui.BeginPopupContextItem(ctx) then
     -- Right-click should also activate the row it belongs to.
-    articulations.set_active(row_i)
+    articulations.set_active(row_i, false)
 
     if ImGui.MenuItem(ctx, "Delete") then
       delete_active_articulation()
@@ -238,7 +267,7 @@ function articulation_manager_list.draw(ctx)
     rename_state.pending_index = 0
 
     if next_i >= 1 and next_i <= #items then
-      articulations.set_active(next_i)
+      articulations.set_active(next_i, false)
       rename_state.index = next_i
 
       local next_art = items[next_i]
@@ -267,12 +296,12 @@ function articulation_manager_list.draw(ctx)
       else
         local sel_flags = ImGui.SelectableFlags_SpanAllColumns | ImGui.SelectableFlags_AllowDoubleClick
         if ImGui.Selectable(ctx, "##art_row_" .. tostring(i), is_active, sel_flags) then
-          articulations.set_active(i)
+          articulations.set_active(i, true)
           rename_state.index = 0
         end
 
         if ImGui.IsItemHovered(ctx) and ImGui.IsMouseDoubleClicked(ctx, ImGui.MouseButton_Left) then
-          articulations.set_active(i)
+          articulations.set_active(i, true)
           rename_state.index = i
           rename_state.buf = name
           rename_state.focus = true
@@ -289,7 +318,17 @@ function articulation_manager_list.draw(ctx)
       end
 
       ImGui.TableSetColumnIndex(ctx, 1)
-      local trig = (type(art) == "table") and format_trigger(art.trigger) or ""
+      local trig = ""
+      if type(art) == "table" then
+        if show_keyswitches then
+          trig = format_keyswitch(art.trigger)
+          if trig == "" then
+            trig = format_trigger(art.trigger)
+          end
+        else
+          trig = format_trigger(art.trigger)
+        end
+      end
 
       if trig ~= "" then
         local text_w = ImGui.CalcTextSize(ctx, trig)
@@ -334,6 +373,14 @@ end
 
 function articulation_manager_list.duplicate_active()
   duplicate_active_articulation()
+end
+
+function articulation_manager_list.get_show_keyswitches()
+  return show_keyswitches
+end
+
+function articulation_manager_list.set_show_keyswitches(v)
+  show_keyswitches = not not v
 end
 
 return articulation_manager_list

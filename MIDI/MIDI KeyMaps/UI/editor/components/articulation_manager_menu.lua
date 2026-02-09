@@ -188,6 +188,21 @@ function articulation_manager_menu.draw(ctx, modal_center_x, modal_center_y)
       ImGui.EndMenu(ctx)
     end
 
+
+    if ImGui.BeginMenu(ctx, "View", true) then
+      local show_ks = articulation_manager_list.get_show_keyswitches()
+
+      if ImGui.MenuItem(ctx, "Show Triggers", nil, not show_ks) then
+        articulation_manager_list.set_show_keyswitches(false)
+      end
+
+      if ImGui.MenuItem(ctx, "Show KS Aliases (if available)", nil, show_ks) then
+        articulation_manager_list.set_show_keyswitches(true)
+      end
+
+      ImGui.EndMenu(ctx)
+    end
+
     ImGui.EndMenuBar(ctx)
   end
 

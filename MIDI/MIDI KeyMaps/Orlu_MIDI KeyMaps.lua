@@ -1,11 +1,18 @@
 -- @description MIDI KeyMaps
--- @version 1.02
+-- @version 1.03
 -- @author Orlu
 -- @about
 --   Dockable on-screen MIDI keyboard allowing you to visualize which keys of the selected track/VST
 --   instrument have samples mapped to them. Support for instruments with multiple articulations, and 
 --   auto-switching those articulations via MIDI triggers.
 --   Requires ReaImGui to be installed.
+-- @links
+--   Forum Thread https://forum.cockos.com/showthread.php?p=2920837
+-- @changelog
+--   Added setting to send out trigger MIDI data on articulation change (ON by default)
+--   Added ability to add a "Keyswitch Alias" to articulations. Allows to control articulations with non-note triggers (like imports from Reaticulate) from the keyboard
+--   Added ability to assign keyswitch aliases to imported Reaticulate sets
+--   Show label of currently played zone in info line
 -- @provides
 --   [nomain] data/articulations.lua
 --   [nomain] data/constants.lua
@@ -38,9 +45,6 @@
 --   [nomain] utils/math.lua
 --   [nomain] utils/path.lua
 --   [nomain] utils/serialize.lua
--- @changelog
---   Reaticulate Importer: Fixed bug where start note and end note changed just from activating the inputs
---   Reaticulate Importer: When start note exceeds end note adjust end note accordingly, and vice versa
 
 
 local script_path = debug.getinfo(1, 'S').source:match([[^@?(.*[\\/])[^\\/]-$]])

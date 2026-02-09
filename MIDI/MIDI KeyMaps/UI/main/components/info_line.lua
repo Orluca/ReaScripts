@@ -15,14 +15,14 @@ function info_line.draw(ctx)
     parts[#parts + 1] = "No active articulation"
   end
 
-  local zone_label = keyboard.get_hovered_zone_label()
+  local zone_label = keyboard.get_hovered_zone_label() or keyboard.get_played_zone_label()
   if zone_label then
     parts[#parts + 1] = "Zone: " .. zone_label
   end
 
   local trigger_name = keyboard.get_hovered_trigger_articulation_name()
   if trigger_name then
-    parts[#parts + 1] = "Trigger: " .. trigger_name
+    parts[#parts + 1] = "KS: " .. trigger_name
   end
 
   ImGui.Text(ctx, table.concat(parts, " | "))
